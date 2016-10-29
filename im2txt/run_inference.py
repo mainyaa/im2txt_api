@@ -31,10 +31,10 @@ from im2txt.inference_utils import vocabulary
 
 FLAGS = tf.flags.FLAGS
 
-tf.flags.DEFINE_string("checkpoint_path", "",
+tf.flags.DEFINE_string("checkpoint_path", "im2txt/model/train/model.ckpt-2000000",
                        "Model checkpoint file or directory containing a "
                        "model checkpoint file.")
-tf.flags.DEFINE_string("vocab_file", "", "Text file containing the vocabulary.")
+tf.flags.DEFINE_string("vocab_file", "im2txt/data/mscoco/word_counts.txt", "Text file containing the vocabulary.")
 tf.flags.DEFINE_string("input_files", "",
                        "File pattern or comma-separated list of file patterns "
                        "of image files.")
@@ -57,6 +57,8 @@ def main(_):
     filenames.extend(tf.gfile.Glob(file_pattern))
   tf.logging.info("Running caption generation on %d files matching %s",
                   len(filenames), FLAGS.input_files)
+  print(filenames)
+
 
   with tf.Session(graph=g) as sess:
     # Load the model from checkpoint.
@@ -66,6 +68,7 @@ def main(_):
     # beam search parameters. See caption_generator.py for a description of the
     # available beam search parameters.
     generator = caption_generator.CaptionGenerator(model, vocab)
+    result = []
 
     for filename in filenames:
       with tf.gfile.GFile(filename, "r") as f:
@@ -76,8 +79,83 @@ def main(_):
         # Ignore begin and end words.
         sentence = [vocab.id_to_word(w) for w in caption.sentence[1:-1]]
         sentence = " ".join(sentence)
-        print("  %d) %s (p=%f)" % (i, sentence, math.exp(caption.logprob)))
+        prob = math.exp(caption.logprob)
+        print("  %d) %s (p=%f)" % (i, sentence, prob))
+        result.append({
+          "prob": "%f" % prob,
+          "sentence": sentence
+        })
+    return {"result": result}
 
 
-if __name__ == "__main__":
+
+# webapp
+from flask import Flask, jsonify, render_template, request, redirect
+import os
+import uuid
+from PIL import Image, ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+from werkzeug.utils import secure_filename
+import pprint
+
+
+UPLOAD_FOLDER = '/tmp/'
+app = Flask(__name__)
+
+app.config['DEBUG'] = True
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+@app.route('/api/url', methods=['GET', 'POST'])
+def url():
+  # check if the post request has the file part
+  url = request.query_string[2:]
+  if url == "":
+    print("not url")
+    return 403
+  title = uuid.uuid4().hex
+  path = os.path.join(app.config['UPLOAD_FOLDER'], title)
+
+  # get url file
+  req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+  any_url_obj = urllib.request.urlopen(req)
+  local = open(path, 'wb')
+  local.write(any_url_obj.read())
+  # convert to jpg
+  im = Image.open(path)
+  im.save(path+".jpg", "JPEG")
+
+  any_url_obj.close()
+  local.close()
+  FLAGS.input_files = path+".jpg"
+  # inference
+  result = main(None)
+  return jsonify(result)
+
+@app.route('/api/upload', methods=['POST'])
+def upload():
+  pprint.pprint(request.files)
+
+  # check if the post request has the file part
+  if 'file' not in request.files:
+    print("not file")
+    return 403
+  file = request.files['file']
+  # if user does not select file, browser also
+  # submit a empty part without filename
+  if file.filename == '':
+    return 403
+  filename = secure_filename(file.filename)
+  path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+  file.save(path)
+  FLAGS.input_files = path
+  # inference
+  result = main(None)
+  print(result)
+  return jsonify(result)
+
+@app.route('/')
+def root():
+  return render_template('index.html')
+
+if __name__ == "__main__" and FLAGS.input_files != "":
   tf.app.run()
