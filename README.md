@@ -4,13 +4,13 @@ Demo source files extracted from original TensorFlow Models source. (TensorFlow 
 
 To build this demo, you don't need to prepare build environment with Bazel.
 
-Original repository: http://github.com/tensorflow/models/im2txt/
-Full text: http://arxiv.org/abs/1609.06647
+- Original repository: http://github.com/tensorflow/models/im2txt/
+- Full text: http://arxiv.org/abs/1609.06647
 
 ## Setup
 
-Tensorflow setup: https://www.tensorflow.org/versions/r0.11/get_started/os_setup.html
-Git Large File Storage setup: https://git-lfs.github.com/
+- Tensorflow setup: https://www.tensorflow.org/versions/r0.11/get_started/os_setup.html
+- Git Large File Storage setup: https://git-lfs.github.com/
 
 ```
 git clone https://github.com/mainyaa/im2txt_api
