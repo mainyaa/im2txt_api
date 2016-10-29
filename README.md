@@ -10,8 +10,12 @@ Full text: http://arxiv.org/abs/1609.06647
 ## Setup
 
 Tensorflow setup: https://www.tensorflow.org/versions/r0.11/get_started/os_setup.html
+Git Large File Storage setup: https://git-lfs.github.com/
 
 ```
+git clone https://github.com/mainyaa/im2txt_api
+cd im2txt_api
+git lfs pull
 pip install -r requirements.txt
 ```
 
@@ -32,5 +36,22 @@ python -m im2txt.run_inference --input_files wii.jpg
 
 ```
 sudo gunicorn im2txt.run_inference:app --log-file=-
+open http://localhost:8000/
 ```
 
+## Hubot
+
+script/im2txt.coffee
+```
+module.exports = (robot) ->
+  robot.respond /im2txt +(.*)/i, (msg) ->
+    # Send POST request
+    request = require 'request'
+    endpoint = 'http://[ADDRESS]/api/url?q=' + msg.match[1]
+    request.get
+      url: endpoint
+    , (err, response, body) ->
+      # Reply
+      msg.reply "TensorFlow Show and Tell:\n```\n#{body}\n```"
+
+```

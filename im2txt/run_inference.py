@@ -96,6 +96,7 @@ import uuid
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from werkzeug.utils import secure_filename
+import urllib
 import pprint
 
 
@@ -111,7 +112,7 @@ def url():
   url = request.query_string[2:]
   if url == "":
     print("not url")
-    return 403
+    return redirect("/")
   title = uuid.uuid4().hex
   path = os.path.join(app.config['UPLOAD_FOLDER'], title)
 
@@ -138,12 +139,12 @@ def upload():
   # check if the post request has the file part
   if 'file' not in request.files:
     print("not file")
-    return 403
+    return redirect("/")
   file = request.files['file']
   # if user does not select file, browser also
   # submit a empty part without filename
   if file.filename == '':
-    return 403
+    return redirect("/")
   filename = secure_filename(file.filename)
   path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
   file.save(path)
