@@ -117,18 +117,13 @@ def url():
   path = os.path.join(app.config['UPLOAD_FOLDER'], title)
 
   # get url file
-  req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-  any_url_obj = urllib.request.urlopen(req)
-  local = open(path, 'wb')
-  local.write(any_url_obj.read())
+  (filename, headers) = urllib.urlretrieve(url, path)
   # convert to jpg
   im = Image.open(path)
   if im.mode != "RGB":
     im = im.convert("RGB")
   im.save(path+".jpg", "JPEG")
 
-  any_url_obj.close()
-  local.close()
   FLAGS.input_files = path+".jpg"
   # inference
   result = main(None)
