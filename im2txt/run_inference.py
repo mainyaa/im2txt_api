@@ -123,6 +123,8 @@ def url():
   local.write(any_url_obj.read())
   # convert to jpg
   im = Image.open(path)
+  if im.mode != "RGB":
+    im = im.convert("RGB")
   im.save(path+".jpg", "JPEG")
 
   any_url_obj.close()
