@@ -4,7 +4,7 @@ Demo source files extracted from original TensorFlow Models source. (TensorFlow 
 
 To build this demo, you don't need to prepare build environment with Bazel.
 
-- Original repository: http://github.com/tensorflow/models/im2txt/
+- Original repository: https://github.com/tensorflow/models/tree/master/im2txt
 - Full text: http://arxiv.org/abs/1609.06647
 
 ## Setup
