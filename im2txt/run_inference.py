@@ -57,7 +57,7 @@ def main(_):
     filenames.extend(tf.gfile.Glob(file_pattern))
   tf.logging.info("Running caption generation on %d files matching %s",
                   len(filenames), FLAGS.input_files)
-  print(filenames)
+  #print(filenames)
 
 
   with tf.Session(graph=g) as sess:
@@ -74,13 +74,13 @@ def main(_):
       with tf.gfile.GFile(filename, "r") as f:
         image = f.read()
       captions = generator.beam_search(sess, image)
-      print("Captions for image %s:" % os.path.basename(filename))
+      #print("Captions for image %s:" % os.path.basename(filename))
       for i, caption in enumerate(captions):
         # Ignore begin and end words.
         sentence = [vocab.id_to_word(w) for w in caption.sentence[1:-1]]
         sentence = " ".join(sentence)
         prob = math.exp(caption.logprob)
-        print("  %d) %s (p=%f)" % (i, sentence, prob))
+        #print("  %d) %s (p=%f)" % (i, sentence, prob))
         result.append({
           "prob": "%f" % prob,
           "sentence": sentence
@@ -111,7 +111,7 @@ def url():
   # check if the post request has the file part
   url = request.query_string[2:]
   if url == "":
-    print("not url")
+    #print("not url")
     return redirect("/")
   title = uuid.uuid4().hex
   path = os.path.join(app.config['UPLOAD_FOLDER'], title)
@@ -131,11 +131,11 @@ def url():
 
 @app.route('/api/upload', methods=['POST'])
 def upload():
-  pprint.pprint(request.files)
+  #pprint.pprint(request.files)
 
   # check if the post request has the file part
   if 'file' not in request.files:
-    print("not file")
+    #print("not file")
     return redirect("/")
   file = request.files['file']
   # if user does not select file, browser also
@@ -148,7 +148,7 @@ def upload():
   FLAGS.input_files = path
   # inference
   result = main(None)
-  print(result)
+  #print(result)
   return jsonify(result)
 
 @app.route('/')
